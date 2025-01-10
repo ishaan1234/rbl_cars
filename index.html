@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>YOLO Video Detection</title>
+        <style>
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+                font-family: Arial, sans-serif;
+            }
+            .upload-form {
+                margin-bottom: 20px;
+                padding: 20px;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+            }
+            #frame {
+                max-width: 100%;
+                margin-top: 20px;
+                border-radius: 8px;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+            .status {
+                margin-top: 10px;
+                padding: 10px;
+                border-radius: 4px;
+            }
+            .success { color: green; }
+            .error { color: red; }
+            button {
+                padding: 8px 16px;
+                background-color: #007bff;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            button:hover {
+                background-color: #0056b3;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>RBL Car Crash Detection</h1>
+            <div class="upload-form">
+                <h2>Upload Video</h2>
+                <input type="file" id="videoFile" accept="video/*">
+                <button onclick="uploadVideo()">Upload & Start Detection</button>
+                <div id="uploadStatus" class="status"></div>
+            </div>
+            <div class="video-container">
+                <img id="frame" src="">
+            </div>
+        </div>
+
+        <script>
+            let isStreaming = false;
+
+            async function uploadVideo() {
+                const fileInput = document.getElementById('videoFile');
+                const status = document.getElementById('uploadStatus');
+                const frame = document.getElementById('frame');
+                
+                if (!fileInput.files.length) {
+                    status.textContent = 'Please select a file first';
+                    status.className = 'status error';
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+
+                try {
+                    status.textContent = 'Uploading video...';
+                    status.className = 'status';
+                    
+                    const response = await fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        status.textContent = 'Upload successful! Starting detection...';
+                        status.className = 'status success';
+                        
+                        // Start streaming directly from the video feed
+                        frame.src = `/video_feed?${new Date().getTime()}`;
+                        isStreaming = true;
+                    } else {
+                        status.textContent = `Upload failed: ${result.message}`;
+                        status.className = 'status error';
+                    }
+                } catch (error) {
+                    status.textContent = `Error: ${error.message}`;
+                    status.className = 'status error';
+                }
+            }
+        </script>
+    </body>
+</html>
